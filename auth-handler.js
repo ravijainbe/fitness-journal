@@ -148,8 +148,9 @@ async function initializeApp() {
     
     // Update the journal instance to use cloud database
     journal.db = cloudDb;
-    await journal.loadData();
-    journal.render();
+    
+    // Now initialize the journal (this will render the UI)
+    await journal.init();
 }
 
 function showLogin() {

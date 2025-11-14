@@ -4,7 +4,7 @@ class FitnessJournal {
         this.db = new FitnessDB();
         this.activities = [];
         this.goals = [];
-        this.init();
+        // Do NOT call init() here - it will be called after authentication
     }
 
     async init() {
