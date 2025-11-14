@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #log {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Basic Diagnostics</h1>
+
+    <div class="test-section">
+        <h2>Step 1: Check Script Loading</h2>
+        <div id="script-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 2: Test LocalStorage</h2>
+        <button onclick="testLocalStorage()">Test LocalStorage</button>
+        <div id="storage-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 3: Test IndexedDB</h2>
+        <button onclick="testIndexedDB()">Test IndexedDB</button>
+        <div id="indexeddb-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Step 4: Manual Login Test</h2>
+        <input type="email" id="test-email" placeholder="Email" value="test@example.com" style="padding: 8px; margin: 5px; width: 200px;">
+        <input type="password" id="test-password" placeholder="Password" value="password123" style="padding: 8px; margin: 5px; width: 200px;">
+        <br>
+        <button onclick="testSignup()">Test Signup</button>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="auth-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <button onclick="clearLog()">Clear Log</button>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ff0000' : type === 'success' ? '#00ff00' : '#00ffff';
+            logEl.innerHTML += `<span style="color: ${color}">[${time}] ${message}</span>\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.className = `status ${type}`;
+            el.textContent = message;
+        }
+
+        // Check script loading
+        (function() {
+            log('Page loaded');
+            
+            const scripts = [
+                'db.js',
+                'auth.js',
+                'cloud-db.js',
+                'app.js',
+                'auth-handler.js'
+            ];
+
+            let status = 'Checking scripts...\n';
+            
+            if (typeof FitnessDB !== 'undefined') {
+                status += '✅ db.js loaded (FitnessDB found)\n';
+                log('✅ db.js loaded', 'success');
+            } else {
+                status += '❌ db.js NOT loaded\n';
+                log('❌ db.js NOT loaded', 'error');
+            }
+
+            if (typeof AuthManager !== 'undefined') {
+                status += '✅ auth.js loaded (AuthManager found)\n';
+                log('✅ auth.js loaded', 'success');
+            } else {
+                status += '❌ auth.js NOT loaded\n';
+                log('❌ auth.js NOT loaded', 'error');
+            }
+
+            if (typeof CloudDB !== 'undefined') {
+                status += '✅ cloud-db.js loaded (CloudDB found)\n';
+                log('✅ cloud-db.js loaded', 'success');
+            } else {
+                status += '❌ cloud-db.js NOT loaded\n';
+                log('❌ cloud-db.js NOT loaded', 'error');
+            }
+
+            if (typeof FitnessJournal !== 'undefined') {
+                status += '✅ app.js loaded (FitnessJournal found)\n';
+                log('✅ app.js loaded', 'success');
+            } else {
+                status += '❌ app.js NOT loaded\n';
+                log('❌ app.js NOT loaded', 'error');
+            }
+
+            document.getElementById('script-status').innerHTML = '<pre>' + status + '</pre>';
+        })();
+
+        function testLocalStorage() {
+            try {
+                localStorage.setItem('test', 'value');
+                const value = localStorage.getItem('test');
+                localStorage.removeItem('test');
+                
+                if (value === 'value') {
+                    showStatus('storage-status', '✅ LocalStorage is working!', 'success');
+                    log('✅ LocalStorage test passed', 'success');
+                } else {
+                    showStatus('storage-status', '❌ LocalStorage read failed', 'error');
+                    log('❌ LocalStorage read failed', 'error');
+                }
+            } catch (error) {
+                showStatus('storage-status', '❌ LocalStorage error: ' + error.message, 'error');
+                log('❌ LocalStorage error: ' + error.message, 'error');
+            }
+        }
+
+        function testIndexedDB() {
+            try {
+                const request = indexedDB.open('TestDB', 1);
+                
+                request.onsuccess = function() {
+                    showStatus('indexeddb-status', '✅ IndexedDB is working!', 'success');
+                    log('✅ IndexedDB test passed', 'success');
+                    indexedDB.deleteDatabase('TestDB');
+                };
+                
+                request.onerror = function() {
+                    showStatus('indexeddb-status', '❌ IndexedDB error: ' + request.error, 'error');
+                    log('❌ IndexedDB error: ' + request.error, 'error');
+                };
+            } catch (error) {
+                showStatus('indexeddb-status', '❌ IndexedDB error: ' + error.message, 'error');
+                log('❌ IndexedDB error: ' + error.message, 'error');
+            }
+        }
+
+        async function testSignup() {
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+
+            log('Starting signup test...');
+            showStatus('auth-status', 'Testing signup...', 'info');
+
+            try {
+                // Check if AuthManager exists
+                if (typeof AuthManager === 'undefined') {
+                    throw new Error('AuthManager not loaded');
+                }
+
+                log('Creating AuthManager instance...');
+                const authManager = new AuthManager();
+                
+                log('Initializing AuthManager...');
+                await authManager.init();
+                
+                log('Calling signUp...');
+                const result = await authManager.signUp(email, password, 'Test User');
+                
+                if (result.success) {
+                    showStatus('auth-status', '✅ Signup successful!', 'success');
+                    log('✅ Signup successful!', 'success');
+                } else {
+                    showStatus('auth-status', '❌ Signup failed: ' + result.error, 'error');
+                    log('❌ Signup failed: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showStatus('auth-status', '❌ Signup error: ' + error.message, 'error');
+                log('❌ Signup error: ' + error.message, 'error');
+                log('Stack: ' + error.stack, 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+
+            log('Starting login test...');
+            showStatus('auth-status', 'Testing login...', 'info');
+
+            try {
+                // Check if AuthManager exists
+                if (typeof AuthManager === 'undefined') {
+                    throw new Error('AuthManager not loaded');
+                }
+
+                log('Creating AuthManager instance...');
+                const authManager = new AuthManager();
+                
+                log('Initializing AuthManager...');
+                await authManager.init();
+                
+                log('Calling signIn...');
+                const result = await authManager.signIn(email, password);
+                
+                if (result.success) {
+                    showStatus('auth-status', '✅ Login successful!', 'success');
+                    log('✅ Login successful!', 'success');
+                    log('User: ' + JSON.stringify(result.user), 'success');
+                } else {
+                    showStatus('auth-status', '❌ Login failed: ' + result.error, 'error');
+                    log('❌ Login failed: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showStatus('auth-status', '❌ Login error: ' + error.message, 'error');
+                log('❌ Login error: ' + error.message, 'error');
+                log('Stack: ' + error.stack, 'error');
+            }
+        }
+
+        // Capture all errors
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            log(`❌ Global Error: ${msg}`, 'error');
+            log(`   at ${url}:${lineNo}:${columnNo}`, 'error');
+            if (error && error.stack) {
+                log(`   Stack: ${error.stack}`, 'error');
+            }
+            return false;
+        };
+
+        window.onunhandledrejection = function(event) {
+            log(`❌ Unhandled Promise Rejection: ${event.reason}`, 'error');
+        };
+    </script>
+
+    <!-- Load scripts at the end -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="db.js?v=3"></script>
+    <script src="auth.js?v=3"></script>
+    <script src="cloud-db.js?v=3"></script>
+    <script src="app.js?v=3"></script>
+</body>
+</html>
