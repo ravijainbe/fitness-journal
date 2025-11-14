@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Journal - Automated Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .test-results {
+            display: grid;
+            gap: 15px;
+        }
+        .test-group {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .test-group h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        .test-case {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 3px solid #dee2e6;
+        }
+        .test-case.running {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        .test-case.passed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .test-case.failed {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .test-status {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        .test-error {
+            color: #dc3545;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-family: monospace;
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .test-details {
+            font-size: 0.9em;
+            color: #495057;
+            margin-top: 5px;
+        }
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: none;
+        }
+        .summary.show {
+            display: block;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .summary-item {
+            text-align: center;
+        }
+        .summary-value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .summary-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .log {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        .log-time {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .log-info { color: #0dcaf0; }
+        .log-success { color: #28a745; }
+        .log-error { color: #dc3545; }
+        .log-warning { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Fitness Journal - Automated Test Suite</h1>
+        <p class="subtitle">Comprehensive testing for data combinations, edge cases, and functionality</p>
+
+        <div class="controls">
+            <button onclick="runAllTests()" id="run-all-btn">▶️ Run All Tests</button>
+            <button onclick="runQuickTests()">⚡ Quick Test</button>
+            <button onclick="runEdgeCaseTests()">🔍 Edge Cases Only</button>
+            <button onclick="runStressTests()">💪 Stress Test</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+            <button onclick="clearDatabase()" class="danger">⚠️ Clear Database</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%">0%</div>
+        </div>
+
+        <div class="summary" id="summary">
+            <h2>📊 Test Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value" id="total-tests">0</div>
+                    <div class="summary-label">Total Tests</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="passed-tests">0</div>
+                    <div class="summary-label">Passed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="failed-tests">0</div>
+                    <div class="summary-label">Failed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="duration">0s</div>
+                    <div class="summary-label">Duration</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-results" id="test-results"></div>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        let db;
+        let testResults = [];
+        let startTime;
+
+        // Initialize database
+        (async () => {
+            try {
+                db = new FitnessDB();
+                await db.init();
+                log('Database initialized', 'success');
+            } catch (error) {
+                log(`Database initialization failed: ${error.message}`, 'error');
+            }
+        })();
+
+        // Logging
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-time">[${time}]</span><span class="log-${type}">${message}</span>`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Test framework
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.results = [];
+                this.currentGroup = null;
+            }
+
+            group(name) {
+                this.currentGroup = name;
+                return this;
+            }
+
+            test(name, fn) {
+                this.tests.push({
+                    group: this.currentGroup,
+                    name,
+                    fn
+                });
+                return this;
+            }
+
+            async run() {
+                this.results = [];
+                startTime = Date.now();
+                const total = this.tests.length;
+                
+                for (let i = 0; i < this.tests.length; i++) {
+                    const test = this.tests[i];
+                    updateProgress((i / total) * 100);
+                    
+                    const result = await this.runTest(test);
+                    this.results.push(result);
+                    renderTestResult(result);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                
+                updateProgress(100);
+                showSummary(this.results);
+            }
+
+            async runTest(test) {
+                const result = {
+                    group: test.group,
+                    name: test.name,
+                    status: 'running',
+                    error: null,
+                    details: null
+                };
+
+                try {
+                    log(`Running: ${test.name}`, 'info');
+                    const details = await test.fn();
+                    result.status = 'passed';
+                    result.details = details;
+                    log(`✓ Passed: ${test.name}`, 'success');
+                } catch (error) {
+                    result.status = 'failed';
+                    result.error = error.message;
+                    log(`✗ Failed: ${test.name} - ${error.message}`, 'error');
+                }
+
+                return result;
+            }
+        }
+
+        // Test assertions
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(message || 'Assertion failed');
+            }
+        }
+
+        function assertEquals(actual, expected, message) {
+            if (actual !== expected) {
+                throw new Error(message || `Expected ${expected}, got ${actual}`);
+            }
+        }
+
+        function assertGreaterThan(actual, expected, message) {
+            if (actual <= expected) {
+                throw new Error(message || `Expected ${actual} to be greater than ${expected}`);
+            }
+        }
+
+        function assertNotNull(value, message) {
+            if (value === null || value === undefined) {
+                throw new Error(message || 'Value is null or undefined');
+            }
+        }
+
+        // Test suites
+        async function runAllTests() {
+            document.getElementById('run-all-btn').disabled = true;
+            clearResults();
+            
+            const runner = new TestRunner();
+
+            // Basic CRUD Tests
+            runner.group('Basic CRUD Operations')
+                .test('Add activity with all fields', async () => {
+                    const activity = {
+                        type: 'running',
+                        duration: 30,
+                        distance: 5.5,
+                        calories: 300,
+                        notes: 'Morning run',
+                        date: '2025-11-14'
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id, 'Activity ID should not be null');
+                    return `Activity ID: ${id}`;
+                })
+                .test('Add activity with minimal fields', async () => {
+                    const activity = {
+                        type: 'yoga',
+                        duration: 20,
+                        date: '2025-11-14'
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return `Minimal activity added: ${id}`;
+                })
+                .test('Retrieve all activities', async () => {
+                    const activities = await db.getAllActivities();
+                    assertGreaterThan(activities.length, 0, 'Should have at least one activity');
+                    return `Found ${activities.length} activities`;
+                })
+                .test('Delete activity', async () => {
+                    const activities = await db.getAllActivities();
+                    if (activities.length > 0) {
+                        await db.deleteActivity(activities[0].id);
+                        const after = await db.getAllActivities();
+                        assertEquals(after.length, activities.length - 1, 'Activity count should decrease');
+                    }
+                    return 'Activity deleted successfully';
+                });
+
+            // Goal Tests
+            runner.group('Goal Management')
+                .test('Create frequency goal', async () => {
+                    const goal = {
+                        title: 'Exercise 5 times per week',
+                        type: 'frequency',
+                        target: 5,
+                        targetDate: '2025-12-31',
+                        description: 'Weekly exercise goal',
+                        createdDate: '2025-11-01'
+                    };
+                    const id = await db.addGoal(goal);
+                    assertNotNull(id);
+                    return `Goal ID: ${id}`;
+                })
+                .test('Create duration goal', async () => {
+                    const goal = {
+                        title: 'Complete 300 minutes',
+                        type: 'duration',
+                        target: 300,
+                        targetDate: '2025-12-31',
+                        description: 'Monthly duration goal',
+                        createdDate: '2025-11-01'
+                    };
+                    const id = await db.addGoal(goal);
+                    assertNotNull(id);
+                    return `Duration goal created`;
+                })
+                .test('Retrieve all goals', async () => {
+                    const goals = await db.getAllGoals();
+                    assertGreaterThan(goals.length, 0);
+                    return `Found ${goals.length} goals`;
+                });
+
+            // Edge Cases
+            runner.group('Edge Cases')
+                .test('Activity with zero duration', async () => {
+                    const activity = {
+                        type: 'walking',
+                        duration: 0,
+                        date: '2025-11-14'
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return 'Zero duration handled';
+                })
+                .test('Activity with very large duration', async () => {
+                    const activity = {
+                        type: 'cycling',
+                        duration: 999999,
+                        date: '2025-11-14'
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return 'Large duration handled';
+                })
+                .test('Activity with future date', async () => {
+                    const futureDate = new Date();
+                    futureDate.setDate(futureDate.getDate() + 30);
+                    const activity = {
+                        type: 'running',
+                        duration: 30,
+                        date: futureDate.toISOString().split('T')[0]
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return 'Future date handled';
+                })
+                .test('Activity with past date (1 year ago)', async () => {
+                    const pastDate = new Date();
+                    pastDate.setFullYear(pastDate.getFullYear() - 1);
+                    const activity = {
+                        type: 'gym',
+                        duration: 60,
+                        date: pastDate.toISOString().split('T')[0]
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return 'Past date handled';
+                })
+                .test('Activity with special characters in notes', async () => {
+                    const activity = {
+                        type: 'running',
+                        duration: 30,
+                        notes: 'Test with special chars: !@#$%^&*()_+-=[]{}|;:\'",.<>?/~`',
+                        date: '2025-11-14'
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return 'Special characters handled';
+                })
+                .test('Activity with very long notes', async () => {
+                    const activity = {
+                        type: 'yoga',
+                        duration: 45,
+                        notes: 'A'.repeat(10000),
+                        date: '2025-11-14'
+                    };
+                    const id = await db.addActivity(activity);
+                    assertNotNull(id);
+                    return 'Long notes handled';
+                });
+
+            // Date Range Queries
+            runner.group('Date Range Queries')
+                .test('Query activities in date range', async () => {
+                    const activities = await db.getActivitiesByDateRange('2025-01-01', '2025-12-31');
+                    assert(Array.isArray(activities), 'Should return array');
+                    return `Found ${activities.length} activities in range`;
+                })
+                .test('Query with same start and end date', async () => {
+                    const activities = await db.getActivitiesByDateRange('2025-11-14', '2025-11-14');
+                    assert(Array.isArray(activities));
+                    return `Found ${activities.length} activities on single date`;
+                })
+                .test('Query with inverted date range', async () => {
+                    const activities = await db.getActivitiesByDateRange('2025-12-31', '2025-01-01');
+                    assert(Array.isArray(activities));
+                    return 'Inverted range handled';
+                });
+
+            // Statistics
+            runner.group('Statistics & Analytics')
+                .test('Calculate activity statistics', async () => {
+                    const stats = await db.getActivityStats('2025-01-01', '2025-12-31');
+                    assertNotNull(stats);
+                    assert(typeof stats.totalActivities === 'number');
+                    assert(typeof stats.totalDuration === 'number');
+                    return `Total: ${stats.totalActivities} activities, ${stats.totalDuration} min`;
+                })
+                .test('Statistics with no data', async () => {
+                    const stats = await db.getActivityStats('2020-01-01', '2020-01-02');
+                    assertEquals(stats.totalActivities, 0);
+                    return 'Empty stats handled correctly';
+                });
+
+            // Data Integrity
+            runner.group('Data Integrity')
+                .test('Export data', async () => {
+                    const data = await db.exportData();
+                    assertNotNull(data);
+                    assert(Array.isArray(data.activities));
+                    assert(Array.isArray(data.goals));
+                    return `Exported ${data.activities.length} activities, ${data.goals.length} goals`;
+                })
+                .test('Verify data persistence', async () => {
+                    const before = await db.getAllActivities();
+                    const activity = {
+                        type: 'swimming',
+                        duration: 40,
+                        date: '2025-11-14'
+                    };
+                    await db.addActivity(activity);
+                    const after = await db.getAllActivities();
+                    assertEquals(after.length, before.length + 1);
+                    return 'Data persists correctly';
+                });
+
+            // Multiple Activity Types
+            runner.group('Multiple Activity Types')
+                .test('Add all activity types', async () => {
+                    const types = ['running', 'cycling', 'swimming', 'gym', 'yoga', 'walking', 'other'];
+                    for (const type of types) {
+                        await db.addActivity({
+                            type,
+                            duration: 30,
+                            date: '2025-11-14'
+                        });
+                    }
+                    return `Added ${types.length} different activity types`;
+                })
+                .test('Query by activity type', async () => {
+                    const running = await db.getActivitiesByType('running');
+                    assert(Array.isArray(running));
+                    return `Found ${running.length} running activities`;
+                });
+
+            // Concurrent Operations
+            runner.group('Concurrent Operations')
+                .test('Add multiple activities simultaneously', async () => {
+                    const promises = [];
+                    for (let i = 0; i < 10; i++) {
+                        promises.push(db.addActivity({
+                            type: 'running',
+                            duration: 20 + i,
+                            date: '2025-11-14'
+                        }));
+                    }
+                    const ids = await Promise.all(promises);
+                    assertEquals(ids.length, 10);
+                    return '10 concurrent activities added';
+                });
+
+            // Stress Tests
+            runner.group('Stress Tests')
+                .test('Add 100 activities', async () => {
+                    const startCount = (await db.getAllActivities()).length;
+                    for (let i = 0; i < 100; i++) {
+                        await db.addActivity({
+                            type: 'running',
+                            duration: Math.floor(Math.random() * 60) + 10,
+                            distance: Math.random() * 10,
+                            date: '2025-11-14'
+                        });
+                    }
+                    const endCount = (await db.getAllActivities()).length;
+                    assertEquals(endCount, startCount + 100);
+                    return '100 activities added successfully';
+                })
+                .test('Query large dataset', async () => {
+                    const start = performance.now();
+                    const activities = await db.getAllActivities();
+                    const duration = performance.now() - start;
+                    return `Queried ${activities.length} activities in ${duration.toFixed(2)}ms`;
+                });
+
+            await runner.run();
+            document.getElementById('run-all-btn').disabled = false;
+        }
+
+        async function runQuickTests() {
+            clearResults();
+            const runner = new TestRunner();
+            
+            runner.group('Quick Tests')
+                .test('Add activity', async () => {
+                    const id = await db.addActivity({
+                        type: 'running',
+                        duration: 30,
+                        date: '2025-11-14'
+                    });
+                    assertNotNull(id);
+                    return 'Activity added';
+                })
+                .test('Add goal', async () => {
+                    const id = await db.addGoal({
+                        title: 'Test Goal',
+                        type: 'frequency',
+                        target: 5,
+                        targetDate: '2025-12-31',
+                        createdDate: '2025-11-01'
+                    });
+                    assertNotNull(id);
+                    return 'Goal added';
+                })
+                .test('Retrieve data', async () => {
+                    const activities = await db.getAllActivities();
+                    const goals = await db.getAllGoals();
+                    return `${activities.length} activities, ${goals.length} goals`;
+                });
+
+            await runner.run();
+        }
+
+        async function runEdgeCaseTests() {
+            clearResults();
+            const runner = new TestRunner();
+            
+            runner.group('Edge Cases')
+                .test('Empty string notes', async () => {
+                    const id = await db.addActivity({
+                        type: 'running',
+                        duration: 30,
+                        notes: '',
+                        date: '2025-11-14'
+                    });
+                    assertNotNull(id);
+                    return 'Empty notes handled';
+                })
+                .test('Null distance', async () => {
+                    const id = await db.addActivity({
+                        type: 'running',
+                        duration: 30,
+                        distance: null,
+                        date: '2025-11-14'
+                    });
+                    assertNotNull(id);
+                    return 'Null distance handled';
+                })
+                .test('Decimal duration', async () => {
+                    const id = await db.addActivity({
+                        type: 'running',
+                        duration: 30.5,
+                        date: '2025-11-14'
+                    });
+                    assertNotNull(id);
+                    return 'Decimal duration handled';
+                })
+                .test('Very small distance', async () => {
+                    const id = await db.addActivity({
+                        type: 'walking',
+                        duration: 10,
+                        distance: 0.001,
+                        date: '2025-11-14'
+                    });
+                    assertNotNull(id);
+                    return 'Small distance handled';
+                });
+
+            await runner.run();
+        }
+
+        async function runStressTests() {
+            clearResults();
+            const runner = new TestRunner();
+            
+            runner.group('Stress Tests')
+                .test('Add 500 activities', async () => {
+                    const start = performance.now();
+                    for (let i = 0; i < 500; i++) {
+                        await db.addActivity({
+                            type: ['running', 'cycling', 'swimming'][i % 3],
+                            duration: Math.floor(Math.random() * 120) + 10,
+                            date: '2025-11-14'
+                        });
+                    }
+                    const duration = performance.now() - start;
+                    return `500 activities in ${(duration / 1000).toFixed(2)}s`;
+                })
+                .test('Query performance', async () => {
+                    const start = performance.now();
+                    await db.getAllActivities();
+                    const duration = performance.now() - start;
+                    return `Query time: ${duration.toFixed(2)}ms`;
+                });
+
+            await runner.run();
+        }
+
+        function updateProgress(percent) {
+            const progress = document.getElementById('progress');
+            progress.style.width = percent + '%';
+            progress.textContent = Math.round(percent) + '%';
+        }
+
+        function renderTestResult(result) {
+            const container = document.getElementById('test-results');
+            
+            let groupEl = document.querySelector(`[data-group="${result.group}"]`);
+            if (!groupEl) {
+                groupEl = document.createElement('div');
+                groupEl.className = 'test-group';
+                groupEl.dataset.group = result.group;
+                groupEl.innerHTML = `<h2>${result.group}</h2>`;
+                container.appendChild(groupEl);
+            }
+
+            const testEl = document.createElement('div');
+            testEl.className = `test-case ${result.status}`;
+            testEl.innerHTML = `
+                <div class="test-name">${result.name}</div>
+                <div class="test-status">${result.status.toUpperCase()}</div>
+                ${result.details ? `<div class="test-details">${result.details}</div>` : ''}
+                ${result.error ? `<div class="test-error">${result.error}</div>` : ''}
+            `;
+            groupEl.appendChild(testEl);
+        }
+
+        function showSummary(results) {
+            const summary = document.getElementById('summary');
+            const total = results.length;
+            const passed = results.filter(r => r.status === 'passed').length;
+            const failed = results.filter(r => r.status === 'failed').length;
+            const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+            document.getElementById('total-tests').textContent = total;
+            document.getElementById('passed-tests').textContent = passed;
+            document.getElementById('failed-tests').textContent = failed;
+            document.getElementById('duration').textContent = duration + 's';
+
+            summary.classList.add('show');
+
+            log(`Test suite completed: ${passed}/${total} passed in ${duration}s`, passed === total ? 'success' : 'warning');
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('summary').classList.remove('show');
+            document.getElementById('log').innerHTML = '';
+            updateProgress(0);
+        }
+
+        async function clearDatabase() {
+            if (!confirm('⚠️ This will delete ALL data from the database. Continue?')) {
+                return;
+            }
+            try {
+                await db.clearAllData();
+                log('Database cleared successfully', 'success');
+                alert('Database cleared! You can now run tests on a clean database.');
+            } catch (error) {
+                log(`Failed to clear database: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
