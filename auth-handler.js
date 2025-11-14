@@ -137,20 +137,27 @@ async function syncData() {
 }
 
 async function initializeApp() {
-    // Initialize cloud database
-    cloudDb = new CloudDB(authManager);
-    await cloudDb.init();
+    try {
+        // Initialize cloud database
+        cloudDb = new CloudDB(authManager);
+        await cloudDb.init();
 
-    // Create journal instance if it doesn't exist
-    if (!window.journal) {
-        window.journal = new FitnessJournal();
+        // Create journal instance if it doesn't exist
+        if (!window.journal) {
+            window.journal = new FitnessJournal();
+        }
+        
+        // Update the journal instance to use cloud database
+        journal.db = cloudDb;
+        
+        // Now initialize the journal (this will render the UI)
+        await journal.init();
+        
+        console.log('App initialized successfully');
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showAuthMessage('Failed to initialize app: ' + error.message, 'error');
     }
-    
-    // Update the journal instance to use cloud database
-    journal.db = cloudDb;
-    
-    // Now initialize the journal (this will render the UI)
-    await journal.init();
 }
 
 function showLogin() {

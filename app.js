@@ -9,7 +9,10 @@ class FitnessJournal {
 
     async init() {
         try {
-            await this.db.init();
+            // Only init db if it hasn't been initialized yet
+            if (!this.db.db) {
+                await this.db.init();
+            }
             await this.loadData();
             this.setupNavigation();
             this.setupModals();
