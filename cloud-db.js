@@ -3,8 +3,8 @@ class CloudDB extends FitnessDB {
     constructor(authManager) {
         super();
         this.authManager = authManager;
-        this.supabaseUrl = 'YOUR_SUPABASE_URL';
-        this.supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        this.supabaseUrl = 'https://tiqayakgbdjdztavsmty.supabase.co';
+        this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcWF5YWtnYmRqZHp0YXZzbXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzIzMzQsImV4cCI6MjA3ODcwODMzNH0.AZq8OsylAQcxR0-jfxBhGiZBK-e3erSydNE2nDi9-GA';
         this.supabase = null;
         this.syncEnabled = false;
     }

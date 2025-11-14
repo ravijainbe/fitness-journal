@@ -162,8 +162,8 @@ CREATE INDEX goals_status_idx ON goals(status);
 
 1. Go to **Project Settings** (gear icon) → **API**
 2. Copy these values:
-   - **Project URL**: `https://xxxxx.supabase.co`
-   - **anon public key**: `eyJhbGc...` (long string)
+   - **Project URL**: `https://tiqayakgbdjdztavsmty.supabase.co`
+   - **anon public key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcWF5YWtnYmRqZHp0YXZzbXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzIzMzQsImV4cCI6MjA3ODcwODMzNH0.AZq8OsylAQcxR0-jfxBhGiZBK-e3erSydNE2nDi9-GA`
 
 ---
 

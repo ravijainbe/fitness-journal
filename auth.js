@@ -1,8 +1,8 @@
 // Authentication Manager with Supabase
 class AuthManager {
     constructor() {
-        this.supabaseUrl = 'YOUR_SUPABASE_URL'; // Will be configured
-        this.supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Will be configured
+        this.supabaseUrl = 'https://tiqayakgbdjdztavsmty.supabase.co'; // Will be configured
+        this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcWF5YWtnYmRqZHp0YXZzbXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzIzMzQsImV4cCI6MjA3ODcwODMzNH0.AZq8OsylAQcxR0-jfxBhGiZBK-e3erSydNE2nDi9-GA'; // Will be configured
         this.supabase = null;
         this.currentUser = null;
     }
