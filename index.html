@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Journal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💪 Fitness Journal</h1>
+            <nav>
+                <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+                <button class="nav-btn" data-view="activities">Activities</button>
+                <button class="nav-btn" data-view="goals">Goals</button>
+                <button class="nav-btn" data-view="progress">Progress</button>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Dashboard View -->
+            <section id="dashboard" class="view active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Activities</h3>
+                        <p class="stat-value" id="total-activities">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Active Goals</h3>
+                        <p class="stat-value" id="active-goals">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>This Week</h3>
+                        <p class="stat-value" id="week-activities">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Streak</h3>
+                        <p class="stat-value" id="streak-days">0 days</p>
+                    </div>
+                </div>
+                <div class="recent-section">
+                    <h2>Recent Activities</h2>
+                    <div id="recent-activities"></div>
+                </div>
+            </section>
+
+            <!-- Activities View -->
+            <section id="activities" class="view">
+                <div class="section-header">
+                    <h2>Activity Log</h2>
+                    <button class="btn-primary" id="add-activity-btn">+ Log Activity</button>
+                </div>
+                <div id="activities-list"></div>
+            </section>
+
+            <!-- Goals View -->
+            <section id="goals" class="view">
+                <div class="section-header">
+                    <h2>Fitness Goals</h2>
+                    <button class="btn-primary" id="add-goal-btn">+ New Goal</button>
+                </div>
+                <div id="goals-list"></div>
+            </section>
+
+            <!-- Progress View -->
+            <section id="progress" class="view">
+                <h2>Progress Charts</h2>
+                <div class="chart-container">
+                    <h3>Activity Frequency (Last 30 Days)</h3>
+                    <canvas id="frequency-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Activity Duration Trends</h3>
+                    <canvas id="duration-chart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Activity Modal -->
+    <div id="activity-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Log Activity</h2>
+            <form id="activity-form">
+                <label>Activity Type</label>
+                <select id="activity-type" required>
+                    <option value="">Select type...</option>
+                    <option value="running">Running</option>
+                    <option value="cycling">Cycling</option>
+                    <option value="swimming">Swimming</option>
+                    <option value="gym">Gym Workout</option>
+                    <option value="yoga">Yoga</option>
+                    <option value="walking">Walking</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <label>Duration (minutes)</label>
+                <input type="number" id="activity-duration" min="1" required>
+
+                <label>Distance (km) - Optional</label>
+                <input type="number" id="activity-distance" step="0.1" min="0">
+
+                <label>Calories Burned - Optional</label>
+                <input type="number" id="activity-calories" min="0">
+
+                <label>Notes</label>
+                <textarea id="activity-notes" rows="3"></textarea>
+
+                <label>Date</label>
+                <input type="date" id="activity-date" required>
+
+                <button type="submit" class="btn-primary">Save Activity</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Goal Modal -->
+    <div id="goal-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create Goal</h2>
+            <form id="goal-form">
+                <label>Goal Title</label>
+                <input type="text" id="goal-title" required>
+
+                <label>Goal Type</label>
+                <select id="goal-type" required>
+                    <option value="">Select type...</option>
+                    <option value="frequency">Activity Frequency</option>
+                    <option value="duration">Total Duration</option>
+                    <option value="distance">Total Distance</option>
+                    <option value="weight">Weight Target</option>
+                </select>
+
+                <label>Target Value</label>
+                <input type="number" id="goal-target" min="1" required>
+
+                <label>Target Date</label>
+                <input type="date" id="goal-date" required>
+
+                <label>Description</label>
+                <textarea id="goal-description" rows="3"></textarea>
+
+                <button type="submit" class="btn-primary">Create Goal</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

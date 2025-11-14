@@ -1,0 +1,23 @@
+{
+  "name": "fitness-journal",
+  "version": "1.0.0",
+  "description": "A comprehensive health and fitness tracking application",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "netlify deploy --prod",
+    "deploy:draft": "netlify deploy"
+  },
+  "keywords": [
+    "fitness",
+    "health",
+    "journal",
+    "tracking",
+    "workout",
+    "goals"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
