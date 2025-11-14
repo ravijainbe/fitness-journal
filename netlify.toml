@@ -6,11 +6,8 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Redirect rules
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# No redirect rules needed for static site
+# Removed SPA redirect that was catching all requests including JS/CSS files
 
 # Headers for security and performance
 [[headers]]
