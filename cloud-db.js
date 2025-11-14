@@ -1,0 +1,242 @@
+// Cloud Database Manager with Supabase + IndexedDB sync
+class CloudDB extends FitnessDB {
+    constructor(authManager) {
+        super();
+        this.authManager = authManager;
+        this.supabaseUrl = 'YOUR_SUPABASE_URL';
+        this.supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+        this.supabase = null;
+        this.syncEnabled = false;
+    }
+
+    async init() {
+        // Initialize local IndexedDB first
+        await super.init();
+
+        // Check if Supabase is configured
+        if (this.supabaseUrl.includes('YOUR_SUPABASE')) {
+            console.warn('Cloud sync not configured. Using local storage only.');
+            return;
+        }
+
+        // Initialize Supabase client
+        this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
+        this.syncEnabled = true;
+
+        // Sync data if user is authenticated
+        if (this.authManager.isAuthenticated()) {
+            await this.syncFromCloud();
+        }
+    }
+
+    // Override addActivity to sync with cloud
+    async addActivity(activity) {
+        const localId = await super.addActivity(activity);
+
+        if (this.syncEnabled && this.authManager.isAuthenticated()) {
+            try {
+                const activityData = {
+                    ...activity,
+                    user_id: this.authManager.getUserId(),
+                    local_id: localId,
+                    synced_at: new Date().toISOString()
+                };
+
+                const { data, error } = await this.supabase
+                    .from('activities')
+                    .insert([activityData])
+                    .select();
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Failed to sync activity to cloud:', error);
+            }
+        }
+
+        return localId;
+    }
+
+    // Override addGoal to sync with cloud
+    async addGoal(goal) {
+        const localId = await super.addGoal(goal);
+
+        if (this.syncEnabled && this.authManager.isAuthenticated()) {
+            try {
+                const goalData = {
+                    ...goal,
+                    user_id: this.authManager.getUserId(),
+                    local_id: localId,
+                    synced_at: new Date().toISOString()
+                };
+
+                const { data, error } = await this.supabase
+                    .from('goals')
+                    .insert([goalData])
+                    .select();
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Failed to sync goal to cloud:', error);
+            }
+        }
+
+        return localId;
+    }
+
+    // Override deleteActivity to sync with cloud
+    async deleteActivity(id) {
+        await super.deleteActivity(id);
+
+        if (this.syncEnabled && this.authManager.isAuthenticated()) {
+            try {
+                const { error } = await this.supabase
+                    .from('activities')
+                    .delete()
+                    .eq('local_id', id)
+                    .eq('user_id', this.authManager.getUserId());
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Failed to delete activity from cloud:', error);
+            }
+        }
+    }
+
+    // Override deleteGoal to sync with cloud
+    async deleteGoal(id) {
+        await super.deleteGoal(id);
+
+        if (this.syncEnabled && this.authManager.isAuthenticated()) {
+            try {
+                const { error } = await this.supabase
+                    .from('goals')
+                    .delete()
+                    .eq('local_id', id)
+                    .eq('user_id', this.authManager.getUserId());
+
+                if (error) throw error;
+            } catch (error) {
+                console.error('Failed to delete goal from cloud:', error);
+            }
+        }
+    }
+
+    // Sync data from cloud to local
+    async syncFromCloud() {
+        if (!this.syncEnabled || !this.authManager.isAuthenticated()) {
+            return;
+        }
+
+        try {
+            const userId = this.authManager.getUserId();
+
+            // Fetch activities from cloud
+            const { data: activities, error: activitiesError } = await this.supabase
+                .from('activities')
+                .select('*')
+                .eq('user_id', userId);
+
+            if (activitiesError) throw activitiesError;
+
+            // Fetch goals from cloud
+            const { data: goals, error: goalsError } = await this.supabase
+                .from('goals')
+                .select('*')
+                .eq('user_id', userId);
+
+            if (goalsError) throw goalsError;
+
+            // Clear local data
+            await this.clearAllData();
+
+            // Import cloud data to local
+            if (activities) {
+                for (const activity of activities) {
+                    const { user_id, local_id, synced_at, id: cloudId, ...activityData } = activity;
+                    await super.addActivity(activityData);
+                }
+            }
+
+            if (goals) {
+                for (const goal of goals) {
+                    const { user_id, local_id, synced_at, id: cloudId, ...goalData } = goal;
+                    await super.addGoal(goalData);
+                }
+            }
+
+            console.log(`Synced ${activities?.length || 0} activities and ${goals?.length || 0} goals from cloud`);
+        } catch (error) {
+            console.error('Failed to sync from cloud:', error);
+        }
+    }
+
+    // Sync local data to cloud
+    async syncToCloud() {
+        if (!this.syncEnabled || !this.authManager.isAuthenticated()) {
+            return;
+        }
+
+        try {
+            const userId = this.authManager.getUserId();
+            const activities = await super.getAllActivities();
+            const goals = await super.getAllGoals();
+
+            // Delete existing cloud data for this user
+            await this.supabase.from('activities').delete().eq('user_id', userId);
+            await this.supabase.from('goals').delete().eq('user_id', userId);
+
+            // Upload activities
+            if (activities.length > 0) {
+                const activitiesData = activities.map(a => ({
+                    ...a,
+                    user_id: userId,
+                    local_id: a.id,
+                    synced_at: new Date().toISOString()
+                }));
+
+                const { error } = await this.supabase
+                    .from('activities')
+                    .insert(activitiesData);
+
+                if (error) throw error;
+            }
+
+            // Upload goals
+            if (goals.length > 0) {
+                const goalsData = goals.map(g => ({
+                    ...g,
+                    user_id: userId,
+                    local_id: g.id,
+                    synced_at: new Date().toISOString()
+                }));
+
+                const { error } = await this.supabase
+                    .from('goals')
+                    .insert(goalsData);
+
+                if (error) throw error;
+            }
+
+            console.log(`Synced ${activities.length} activities and ${goals.length} goals to cloud`);
+        } catch (error) {
+            console.error('Failed to sync to cloud:', error);
+        }
+    }
+
+    // Manual sync trigger
+    async manualSync() {
+        if (!this.syncEnabled) {
+            throw new Error('Cloud sync is not enabled');
+        }
+
+        if (!this.authManager.isAuthenticated()) {
+            throw new Error('User must be authenticated to sync');
+        }
+
+        await this.syncFromCloud();
+        return { success: true, message: 'Data synced successfully' };
+    }
+}
+
+// Export for use in app
+window.CloudDB = CloudDB;

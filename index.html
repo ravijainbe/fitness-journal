@@ -5,11 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fitness Journal</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <!-- Authentication Container -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-box">
             <h1>💪 Fitness Journal</h1>
+            <p class="auth-subtitle">Track your fitness journey</p>
+
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form">
+                <h2>Welcome Back</h2>
+                <form id="login-form-element">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button type="submit" class="btn-auth">Sign In</button>
+                </form>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" onclick="showSignup(); return false;">Sign Up</a>
+                </p>
+                <p class="auth-switch">
+                    <a href="#" onclick="showForgotPassword(); return false;">Forgot Password?</a>
+                </p>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" class="auth-form hidden">
+                <h2>Create Account</h2>
+                <form id="signup-form-element">
+                    <input type="text" id="signup-name" placeholder="Full Name" required>
+                    <input type="email" id="signup-email" placeholder="Email" required>
+                    <input type="password" id="signup-password" placeholder="Password (min 6 characters)" required minlength="6">
+                    <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+                    <button type="submit" class="btn-auth">Sign Up</button>
+                </form>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" onclick="showLogin(); return false;">Sign In</a>
+                </p>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgot-form" class="auth-form hidden">
+                <h2>Reset Password</h2>
+                <form id="forgot-form-element">
+                    <input type="email" id="forgot-email" placeholder="Email" required>
+                    <button type="submit" class="btn-auth">Send Reset Link</button>
+                </form>
+                <p class="auth-switch">
+                    <a href="#" onclick="showLogin(); return false;">Back to Sign In</a>
+                </p>
+            </div>
+
+            <div id="auth-message" class="auth-message"></div>
+        </div>
+    </div>
+
+    <!-- Main App Container (hidden until authenticated) -->
+    <div id="app-container" class="container hidden">
+        <header>
+            <div class="header-content">
+                <h1>💪 Fitness Journal</h1>
+                <div class="user-menu">
+                    <span class="user-greeting">Hello, <span id="user-name">User</span>!</span>
+                    <button class="btn-sync" onclick="syncData()" title="Sync with cloud">🔄 Sync</button>
+                    <button class="btn-logout" onclick="logout()">Logout</button>
+                </div>
+            </div>
             <nav>
                 <button class="nav-btn active" data-view="dashboard">Dashboard</button>
                 <button class="nav-btn" data-view="activities">Activities</button>
@@ -150,6 +212,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="db.js"></script>
+    <script src="auth.js"></script>
+    <script src="cloud-db.js"></script>
     <script src="app.js"></script>
+    <script src="auth-handler.js"></script>
 </body>
 </html>
