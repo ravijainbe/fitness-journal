@@ -4,6 +4,10 @@ let cloudDb;
 
 // Initialize authentication
 document.addEventListener('DOMContentLoaded', async () => {
+    // Ensure correct initial state: show auth, hide app
+    document.getElementById('auth-container')?.classList.remove('hidden');
+    document.getElementById('app-container')?.classList.add('hidden');
+
     authManager = new AuthManager();
     await authManager.init();
 
@@ -137,12 +141,15 @@ async function initializeApp() {
     cloudDb = new CloudDB(authManager);
     await cloudDb.init();
 
-    // Update the global journal instance to use cloud database
-    if (window.journal) {
-        journal.db = cloudDb;
-        await journal.loadData();
-        journal.render();
+    // Create journal instance if it doesn't exist
+    if (!window.journal) {
+        window.journal = new FitnessJournal();
     }
+    
+    // Update the journal instance to use cloud database
+    journal.db = cloudDb;
+    await journal.loadData();
+    journal.render();
 }
 
 function showLogin() {

@@ -499,11 +499,5 @@ class FitnessJournal {
 
 // Initialize app
 let journal;
-document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for authentication to complete
-    // Journal will be initialized by auth-handler.js after login
-    if (!authManager || !authManager.isAuthenticated()) {
-        // Create journal with local DB for now
-        journal = new FitnessJournal();
-    }
-});
+// Journal will be initialized by auth-handler.js after successful login
+// Do NOT initialize here to prevent showing dashboard before authentication
