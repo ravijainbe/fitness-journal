@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Journal - Debug Console</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ec9b0;
+            margin-bottom: 20px;
+        }
+        .section {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #569cd6;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-family: inherit;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        .output {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 0.9em;
+        }
+        .success {
+            color: #4ec9b0;
+        }
+        .error {
+            color: #f48771;
+        }
+        .info {
+            color: #569cd6;
+        }
+        .warning {
+            color: #dcdcaa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #3e3e42;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background: #2d2d30;
+            color: #4ec9b0;
+        }
+        tr:nth-child(even) {
+            background: #2d2d30;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: #2d2d30;
+            padding: 15px;
+            border-radius: 4px;
+            border-left: 3px solid #4ec9b0;
+        }
+        .stat-label {
+            color: #858585;
+            font-size: 0.9em;
+        }
+        .stat-value {
+            color: #4ec9b0;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Fitness Journal - Debug Console</h1>
+        
+        <div class="section">
+            <h2>Database Status</h2>
+            <button onclick="checkDatabase()">Check Database Connection</button>
+            <button onclick="getDatabaseInfo()">Get Database Info</button>
+            <div id="db-status" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h2>Query Activities</h2>
+            <button onclick="getAllActivities()">Get All Activities</button>
+            <button onclick="getRecentActivities()">Get Last 7 Days</button>
+            <button onclick="getActivityStats()">Get Statistics</button>
+            <button onclick="getActivitiesByType()">Group By Type</button>
+            <div id="activities-output" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h2>Query Goals</h2>
+            <button onclick="getAllGoals()">Get All Goals</button>
+            <button onclick="getActiveGoals()">Get Active Goals</button>
+            <button onclick="getGoalProgress()">Calculate Progress</button>
+            <div id="goals-output" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h2>Database Operations</h2>
+            <button onclick="exportAllData()">Export All Data</button>
+            <button onclick="getDataSize()">Calculate Data Size</button>
+            <button onclick="clearAllData()" style="background: #a1260d;">⚠️ Clear All Data</button>
+            <div id="operations-output" class="output"></div>
+        </div>
+
+        <div class="section">
+            <h2>Raw SQL-like Queries</h2>
+            <div>
+                <label style="color: #858585;">Date Range:</label><br>
+                <input type="date" id="start-date" style="margin: 5px; padding: 8px; background: #1e1e1e; color: #d4d4d4; border: 1px solid #3e3e42; border-radius: 4px;">
+                <input type="date" id="end-date" style="margin: 5px; padding: 8px; background: #1e1e1e; color: #d4d4d4; border: 1px solid #3e3e42; border-radius: 4px;">
+                <button onclick="queryByDateRange()">Query</button>
+            </div>
+            <div id="query-output" class="output"></div>
+        </div>
+    </div>
+
+    <script src="db.js"></script>
+    <script>
+        let db;
+        let output = (id, content, type = 'info') => {
+            const el = document.getElementById(id);
+            el.innerHTML = `<span class="${type}">${content}</span>`;
+        };
+
+        // Initialize database
+        (async () => {
+            try {
+                db = new FitnessDB();
+                await db.init();
+                output('db-status', '✅ Database initialized successfully', 'success');
+            } catch (error) {
+                output('db-status', `❌ Database initialization failed: ${error.message}`, 'error');
+            }
+        })();
+
+        async function checkDatabase() {
+            try {
+                const dbExists = db && db.db;
+                if (dbExists) {
+                    output('db-status', '✅ Database is connected and ready\nDatabase Name: FitnessJournalDB\nVersion: 1', 'success');
+                } else {
+                    output('db-status', '❌ Database not connected', 'error');
+                }
+            } catch (error) {
+                output('db-status', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getDatabaseInfo() {
+            try {
+                const activities = await db.getAllActivities();
+                const goals = await db.getAllGoals();
+                const profile = await db.getProfile();
+                
+                const info = `
+📊 Database Information
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Database Name: FitnessJournalDB
+Version: 1
+Object Stores: 3
+
+📋 Data Summary:
+  • Activities: ${activities.length} records
+  • Goals: ${goals.length} records
+  • Profile: ${profile ? 'Configured' : 'Not set'}
+
+💾 Storage:
+  • Type: IndexedDB (Browser-based)
+  • Location: Client-side
+  • Persistent: Yes
+                `;
+                output('db-status', info, 'success');
+            } catch (error) {
+                output('db-status', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getAllActivities() {
+            try {
+                const activities = await db.getAllActivities();
+                if (activities.length === 0) {
+                    output('activities-output', '📭 No activities found. Log some workouts first!', 'warning');
+                    return;
+                }
+
+                let table = `
+📋 All Activities (${activities.length} total)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+<table>
+<tr>
+    <th>ID</th>
+    <th>Date</th>
+    <th>Type</th>
+    <th>Duration (min)</th>
+    <th>Distance (km)</th>
+    <th>Calories</th>
+    <th>Notes</th>
+</tr>`;
+
+                activities.forEach(a => {
+                    table += `
+<tr>
+    <td>${a.id}</td>
+    <td>${a.date}</td>
+    <td>${a.type}</td>
+    <td>${a.duration}</td>
+    <td>${a.distance || '-'}</td>
+    <td>${a.calories || '-'}</td>
+    <td>${a.notes || '-'}</td>
+</tr>`;
+                });
+
+                table += '</table>';
+                output('activities-output', table, 'success');
+            } catch (error) {
+                output('activities-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getRecentActivities() {
+            try {
+                const endDate = new Date().toISOString().split('T')[0];
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7);
+                const startDateStr = startDate.toISOString().split('T')[0];
+
+                const activities = await db.getActivitiesByDateRange(startDateStr, endDate);
+                
+                if (activities.length === 0) {
+                    output('activities-output', '📭 No activities in the last 7 days', 'warning');
+                    return;
+                }
+
+                let result = `📅 Activities (Last 7 Days): ${activities.length} found\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+                activities.forEach(a => {
+                    result += `🏃 ${a.type.toUpperCase()} - ${a.date}\n`;
+                    result += `   Duration: ${a.duration} min`;
+                    if (a.distance) result += ` | Distance: ${a.distance} km`;
+                    if (a.calories) result += ` | Calories: ${a.calories}`;
+                    result += `\n`;
+                    if (a.notes) result += `   Notes: ${a.notes}\n`;
+                    result += `\n`;
+                });
+
+                output('activities-output', result, 'success');
+            } catch (error) {
+                output('activities-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getActivityStats() {
+            try {
+                const stats = await db.getActivityStats('2000-01-01', new Date().toISOString().split('T')[0]);
+                
+                let html = `
+<div class="stats">
+    <div class="stat-card">
+        <div class="stat-label">Total Activities</div>
+        <div class="stat-value">${stats.totalActivities}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Duration</div>
+        <div class="stat-value">${stats.totalDuration} min</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Distance</div>
+        <div class="stat-value">${stats.totalDistance.toFixed(1)} km</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Calories</div>
+        <div class="stat-value">${stats.totalCalories}</div>
+    </div>
+</div>
+
+<br>📊 By Activity Type:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+                for (const [type, data] of Object.entries(stats.byType)) {
+                    html += `\n${type.toUpperCase()}:`;
+                    html += `\n  Count: ${data.count}`;
+                    html += `\n  Duration: ${data.duration} min`;
+                    if (data.distance > 0) html += `\n  Distance: ${data.distance.toFixed(1)} km`;
+                    if (data.calories > 0) html += `\n  Calories: ${data.calories}`;
+                    html += `\n`;
+                }
+
+                output('activities-output', html, 'success');
+            } catch (error) {
+                output('activities-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getActivitiesByType() {
+            try {
+                const activities = await db.getAllActivities();
+                const grouped = {};
+                
+                activities.forEach(a => {
+                    if (!grouped[a.type]) grouped[a.type] = [];
+                    grouped[a.type].push(a);
+                });
+
+                let result = `📊 Activities Grouped By Type\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+                
+                for (const [type, acts] of Object.entries(grouped)) {
+                    result += `${type.toUpperCase()} (${acts.length} activities)\n`;
+                    acts.forEach(a => {
+                        result += `  • ${a.date} - ${a.duration} min`;
+                        if (a.distance) result += ` - ${a.distance} km`;
+                        result += `\n`;
+                    });
+                    result += `\n`;
+                }
+
+                output('activities-output', result, 'success');
+            } catch (error) {
+                output('activities-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getAllGoals() {
+            try {
+                const goals = await db.getAllGoals();
+                
+                if (goals.length === 0) {
+                    output('goals-output', '📭 No goals found. Create some fitness goals!', 'warning');
+                    return;
+                }
+
+                let table = `
+🎯 All Goals (${goals.length} total)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+<table>
+<tr>
+    <th>ID</th>
+    <th>Title</th>
+    <th>Type</th>
+    <th>Target</th>
+    <th>Target Date</th>
+    <th>Status</th>
+    <th>Created</th>
+</tr>`;
+
+                goals.forEach(g => {
+                    table += `
+<tr>
+    <td>${g.id}</td>
+    <td>${g.title}</td>
+    <td>${g.type}</td>
+    <td>${g.target}</td>
+    <td>${g.targetDate}</td>
+    <td>${g.status || 'active'}</td>
+    <td>${g.createdDate || g.createdAt}</td>
+</tr>`;
+                });
+
+                table += '</table>';
+                output('goals-output', table, 'success');
+            } catch (error) {
+                output('goals-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getActiveGoals() {
+            try {
+                const goals = await db.getActiveGoals();
+                
+                if (goals.length === 0) {
+                    output('goals-output', '📭 No active goals', 'warning');
+                    return;
+                }
+
+                let result = `🎯 Active Goals (${goals.length})\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+                
+                goals.forEach(g => {
+                    result += `${g.title}\n`;
+                    result += `  Type: ${g.type}\n`;
+                    result += `  Target: ${g.target}\n`;
+                    result += `  Due: ${g.targetDate}\n`;
+                    if (g.description) result += `  Description: ${g.description}\n`;
+                    result += `\n`;
+                });
+
+                output('goals-output', result, 'success');
+            } catch (error) {
+                output('goals-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getGoalProgress() {
+            try {
+                const goals = await db.getAllGoals();
+                const activities = await db.getAllActivities();
+                
+                if (goals.length === 0) {
+                    output('goals-output', '📭 No goals to calculate progress for', 'warning');
+                    return;
+                }
+
+                let result = `📈 Goal Progress\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+                
+                goals.forEach(goal => {
+                    let current = 0;
+                    const createdDate = new Date(goal.createdDate || goal.createdAt);
+                    const targetDate = new Date(goal.targetDate);
+
+                    switch (goal.type) {
+                        case 'frequency':
+                            current = activities.filter(a => 
+                                new Date(a.date) >= createdDate && new Date(a.date) <= targetDate
+                            ).length;
+                            break;
+                        case 'duration':
+                            current = activities
+                                .filter(a => new Date(a.date) >= createdDate)
+                                .reduce((sum, a) => sum + (a.duration || 0), 0);
+                            break;
+                        case 'distance':
+                            current = activities
+                                .filter(a => new Date(a.date) >= createdDate && a.distance)
+                                .reduce((sum, a) => sum + (a.distance || 0), 0);
+                            break;
+                    }
+
+                    const progress = Math.min((current / goal.target) * 100, 100);
+                    
+                    result += `${goal.title}\n`;
+                    result += `  Progress: ${current} / ${goal.target} (${progress.toFixed(1)}%)\n`;
+                    result += `  Status: ${progress >= 100 ? '✅ Completed!' : '🔄 In Progress'}\n`;
+                    result += `\n`;
+                });
+
+                output('goals-output', result, 'success');
+            } catch (error) {
+                output('goals-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function exportAllData() {
+            try {
+                const data = await db.exportData();
+                const json = JSON.stringify(data, null, 2);
+                
+                output('operations-output', `✅ Data exported successfully!\n\nPreview:\n${json.substring(0, 500)}...\n\n📊 Summary:\n  • Activities: ${data.activities.length}\n  • Goals: ${data.goals.length}\n  • Export Date: ${data.exportDate}`, 'success');
+                
+                // Download file
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fitness-journal-debug-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                output('operations-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getDataSize() {
+            try {
+                const data = await db.exportData();
+                const json = JSON.stringify(data);
+                const bytes = new Blob([json]).size;
+                const kb = (bytes / 1024).toFixed(2);
+                const mb = (bytes / 1024 / 1024).toFixed(2);
+                
+                output('operations-output', `💾 Data Size:\n  • ${bytes} bytes\n  • ${kb} KB\n  • ${mb} MB\n\n📊 Records:\n  • Activities: ${data.activities.length}\n  • Goals: ${data.goals.length}`, 'success');
+            } catch (error) {
+                output('operations-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('⚠️ WARNING: This will delete ALL data (activities, goals, profile). This cannot be undone!\n\nAre you sure?')) {
+                return;
+            }
+            
+            try {
+                await db.clearAllData();
+                output('operations-output', '✅ All data cleared successfully!', 'success');
+            } catch (error) {
+                output('operations-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function queryByDateRange() {
+            try {
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                
+                if (!startDate || !endDate) {
+                    output('query-output', '⚠️ Please select both start and end dates', 'warning');
+                    return;
+                }
+                
+                const activities = await db.getActivitiesByDateRange(startDate, endDate);
+                
+                if (activities.length === 0) {
+                    output('query-output', `📭 No activities found between ${startDate} and ${endDate}`, 'warning');
+                    return;
+                }
+                
+                let result = `📅 Query Results: ${startDate} to ${endDate}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFound ${activities.length} activities\n\n`;
+                
+                activities.forEach(a => {
+                    result += `${a.date} - ${a.type} (${a.duration} min)\n`;
+                });
+                
+                output('query-output', result, 'success');
+            } catch (error) {
+                output('query-output', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Set default dates
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date();
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            document.getElementById('end-date').value = today;
+            document.getElementById('start-date').value = weekAgo.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>
