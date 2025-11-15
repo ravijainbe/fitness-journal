@@ -167,15 +167,15 @@ async function initializeApp() {
         }
         
         // Update the journal instance to use cloud database
-        console.log('Setting journal.db to cloudDb...');
-        journal.db = cloudDb;
+        console.log('Setting window.journal.db to cloudDb...');
+        window.journal.db = cloudDb;
         
         // Now initialize the journal (this will render the UI)
-        console.log('Initializing journal...');
-        await journal.init();
+        console.log('Initializing window.journal...');
+        await window.journal.init();
         
         console.log('App initialized successfully!');
-        console.log('Journal object:', journal);
+        console.log('Journal object:', window.journal);
     } catch (error) {
         console.error('Failed to initialize app:', error);
         console.error('Error stack:', error.stack);
