@@ -86,6 +86,8 @@ class AuthManager {
             if (error) throw error;
 
             this.currentUser = data.user;
+            console.log('User signed in:', data.user);
+            console.log('User metadata:', data.user.user_metadata);
             return { success: true, user: data.user };
         } catch (error) {
             return { success: false, error: error.message };
@@ -183,9 +185,12 @@ class AuthManager {
             
             const userName = document.getElementById('user-name');
             if (userName) {
-                userName.textContent = (this.currentUser && this.currentUser.name) || 
-                                      (this.currentUser && this.currentUser.email) || 
-                                      'User';
+                // Try to get name from user metadata first
+                const displayName = (this.currentUser && this.currentUser.user_metadata && this.currentUser.user_metadata.name) ||
+                                   (this.currentUser && this.currentUser.name) || 
+                                   (this.currentUser && this.currentUser.email && this.currentUser.email.split('@')[0]) || 
+                                   'User';
+                userName.textContent = displayName;
             }
         } else {
             const authContainer = document.getElementById('auth-container');
