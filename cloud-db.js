@@ -6,7 +6,7 @@ class CloudDB extends FitnessDB {
         this.supabaseUrl = 'https://tiqayakgbdjdztavsmty.supabase.co';
         this.supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpcWF5YWtnYmRqZHp0YXZzbXR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzIzMzQsImV4cCI6MjA3ODcwODMzNH0.AZq8OsylAQcxR0-jfxBhGiZBK-e3erSydNE2nDi9-GA';
         this.supabase = null;
-        this.syncEnabled = false;
+        this.syncEnabled = true;
     }
 
     async init() {
