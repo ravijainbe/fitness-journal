@@ -212,14 +212,19 @@ class FitnessDB {
             const request = store.getAll();
 
             request.onsuccess = () => {
-                // Sort by creation date descending
-                const goals = request.result.sort((a, b) => 
-                    new Date(b.createdAt) - new Date(a.createdAt)
-                );
+                console.log('getAllGoals - Raw result from IndexedDB:', request.result);
+                // Sort by creation date descending (use createdAt if available, otherwise createdDate)
+                const goals = request.result.sort((a, b) => {
+                    const dateA = new Date(a.createdAt || a.createdDate || 0);
+                    const dateB = new Date(b.createdAt || b.createdDate || 0);
+                    return dateB - dateA;
+                });
+                console.log('getAllGoals - Sorted goals:', goals);
                 resolve(goals);
             };
 
             request.onerror = () => {
+                console.error('getAllGoals - Error:', request.error);
                 reject(request.error);
             };
         });
