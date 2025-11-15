@@ -184,9 +184,18 @@ class CloudDB extends FitnessDB {
             
             console.log(`syncFromCloud - Local data: ${localActivities.length} activities, ${localGoals.length} goals`);
 
-            // Only clear and sync if cloud has data OR if local is empty
-            // This prevents clearing local data when cloud is empty
-            if ((activities && activities.length > 0) || (goals && goals.length > 0) || (localActivities.length === 0 && localGoals.length === 0)) {
+            const cloudHasData = (activities && activities.length > 0) || (goals && goals.length > 0);
+            const localHasData = localActivities.length > 0 || localGoals.length > 0;
+
+            // If cloud is empty but local has data, sync TO cloud instead
+            if (!cloudHasData && localHasData) {
+                console.log('syncFromCloud - Cloud is empty but local has data. Syncing local TO cloud instead.');
+                await this.syncToCloud();
+                return;
+            }
+
+            // Only clear and sync if cloud has data
+            if (cloudHasData) {
                 console.log('syncFromCloud - Clearing local data and importing from cloud');
                 await this.clearAllData();
 
@@ -216,9 +225,6 @@ class CloudDB extends FitnessDB {
                 }
 
                 console.log(`syncFromCloud - Successfully synced ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
-            } else {
-                console.log('syncFromCloud - Cloud is empty but local has data. Syncing local to cloud instead.');
-                await this.syncToCloud();
             }
         } catch (error) {
             console.error('syncFromCloud - Error, keeping local data intact:', error);
