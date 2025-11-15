@@ -65,22 +65,32 @@ class CloudDB extends FitnessDB {
 
             if (this.syncEnabled && this.authManager.isAuthenticated()) {
                 try {
+                    // Remove fields that might cause issues with Supabase
+                    const { id, createdAt, updatedAt, ...cleanGoal } = goal;
+                    
                     const goalData = {
-                        ...goal,
+                        ...cleanGoal,
                         user_id: this.authManager.getUserId(),
                         local_id: localId,
-                        synced_at: new Date().toISOString()
+                        synced_at: new Date().toISOString(),
+                        status: goal.status || 'active'
                     };
+
+                    console.log('Sending to Supabase:', goalData);
 
                     const { data, error } = await this.supabase
                         .from('goals')
                         .insert([goalData])
                         .select();
 
-                    if (error) throw error;
-                    console.log('Goal synced to cloud successfully');
+                    if (error) {
+                        console.error('Supabase error details:', error);
+                        throw error;
+                    }
+                    console.log('Goal synced to cloud successfully:', data);
                 } catch (error) {
                     console.error('Failed to sync goal to cloud (local save succeeded):', error);
+                    console.error('Error details:', error.message, error.details, error.hint);
                 }
             }
 
