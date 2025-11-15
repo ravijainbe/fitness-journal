@@ -102,9 +102,9 @@ class FitnessJournal {
             dataManagement.id = 'data-management';
             dataManagement.style.cssText = 'margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;';
             dataManagement.innerHTML = `
-                <button class="btn-primary" onclick="journal.exportData()">📥 Export Data</button>
+                <button class="btn-primary" onclick="window.journal.exportData()">📥 Export Data</button>
                 <button class="btn-primary" onclick="document.getElementById('import-file').click()">📤 Import Data</button>
-                <button class="btn-primary" onclick="journal.debugCloudData()">🔍 Debug Cloud</button>
+                <button class="btn-primary" onclick="window.journal.debugCloudData()">🔍 Debug Cloud</button>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
                 <div style="width: 100%; padding: 10px; background: #fff3cd; border-radius: 4px; font-size: 14px;">
                     ℹ️ Data is saved locally. Goals and activities persist automatically.
