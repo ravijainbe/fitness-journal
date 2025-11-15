@@ -164,7 +164,7 @@ class CloudDB extends FitnessDB {
                 }
             }
 
-            console.log(`Synced ${activities?.length || 0} activities and ${goals?.length || 0} goals from cloud`);
+            console.log(`Synced ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
         } catch (error) {
             console.error('Failed to sync from cloud:', error);
         }

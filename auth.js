@@ -175,12 +175,24 @@ class AuthManager {
 
     onAuthStateChange(isAuthenticated) {
         if (isAuthenticated) {
-            document.getElementById('auth-container')?.classList.add('hidden');
-            document.getElementById('app-container')?.classList.remove('hidden');
-            document.getElementById('user-name')?.textContent = this.currentUser?.name || this.currentUser?.email || 'User';
+            const authContainer = document.getElementById('auth-container');
+            if (authContainer) authContainer.classList.add('hidden');
+            
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.classList.remove('hidden');
+            
+            const userName = document.getElementById('user-name');
+            if (userName) {
+                userName.textContent = (this.currentUser && this.currentUser.name) || 
+                                      (this.currentUser && this.currentUser.email) || 
+                                      'User';
+            }
         } else {
-            document.getElementById('auth-container')?.classList.remove('hidden');
-            document.getElementById('app-container')?.classList.add('hidden');
+            const authContainer = document.getElementById('auth-container');
+            if (authContainer) authContainer.classList.remove('hidden');
+            
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.classList.add('hidden');
         }
     }
 
@@ -193,7 +205,7 @@ class AuthManager {
     }
 
     getUserId() {
-        return this.currentUser?.id;
+        return this.currentUser ? this.currentUser.id : null;
     }
 }
 

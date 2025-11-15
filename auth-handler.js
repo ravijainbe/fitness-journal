@@ -5,8 +5,11 @@ let cloudDb;
 // Initialize authentication
 document.addEventListener('DOMContentLoaded', async () => {
     // Ensure correct initial state: show auth, hide app
-    document.getElementById('auth-container')?.classList.remove('hidden');
-    document.getElementById('app-container')?.classList.add('hidden');
+    const authContainer = document.getElementById('auth-container');
+    if (authContainer) authContainer.classList.remove('hidden');
+    
+    const appContainer = document.getElementById('app-container');
+    if (appContainer) appContainer.classList.add('hidden');
 
     authManager = new AuthManager();
     await authManager.init();
