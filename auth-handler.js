@@ -118,7 +118,7 @@ async function syncData() {
         return;
     }
 
-    if (!journal) {
+    if (!window.journal) {
         alert('App not initialized yet');
         return;
     }
@@ -129,8 +129,8 @@ async function syncData() {
         btn.textContent = '🔄 Syncing...';
 
         await cloudDb.manualSync();
-        await journal.loadData();
-        journal.render();
+        await window.journal.loadData();
+        window.journal.render();
 
         btn.textContent = '✓ Synced!';
         setTimeout(() => {
