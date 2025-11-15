@@ -183,6 +183,7 @@ class FitnessDB {
 
     // Goals CRUD Operations
     async addGoal(goal) {
+        console.log('FitnessDB.addGoal called with:', goal);
         return new Promise((resolve, reject) => {
             const transaction = this.db.transaction(['goals'], 'readwrite');
             const store = transaction.objectStore('goals');
@@ -193,13 +194,16 @@ class FitnessDB {
                 createdAt: new Date().toISOString()
             };
             
+            console.log('FitnessDB.addGoal - Saving to IndexedDB:', goalData);
             const request = store.add(goalData);
 
             request.onsuccess = () => {
+                console.log('FitnessDB.addGoal - SUCCESS! ID:', request.result);
                 resolve(request.result);
             };
 
             request.onerror = () => {
+                console.error('FitnessDB.addGoal - ERROR:', request.error);
                 reject(request.error);
             };
         });
