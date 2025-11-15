@@ -58,29 +58,38 @@ class CloudDB extends FitnessDB {
 
     // Override addGoal to sync with cloud
     async addGoal(goal) {
-        const localId = await super.addGoal(goal);
+        console.log('CloudDB.addGoal called with:', goal);
+        
+        try {
+            const localId = await super.addGoal(goal);
+            console.log('Goal saved to IndexedDB with ID:', localId);
 
-        if (this.syncEnabled && this.authManager.isAuthenticated()) {
-            try {
-                const goalData = {
-                    ...goal,
-                    user_id: this.authManager.getUserId(),
-                    local_id: localId,
-                    synced_at: new Date().toISOString()
-                };
+            if (this.syncEnabled && this.authManager.isAuthenticated()) {
+                try {
+                    const goalData = {
+                        ...goal,
+                        user_id: this.authManager.getUserId(),
+                        local_id: localId,
+                        synced_at: new Date().toISOString()
+                    };
 
-                const { data, error } = await this.supabase
-                    .from('goals')
-                    .insert([goalData])
-                    .select();
+                    const { data, error } = await this.supabase
+                        .from('goals')
+                        .insert([goalData])
+                        .select();
 
-                if (error) throw error;
-            } catch (error) {
-                console.error('Failed to sync goal to cloud:', error);
+                    if (error) throw error;
+                    console.log('Goal synced to cloud successfully');
+                } catch (error) {
+                    console.error('Failed to sync goal to cloud (local save succeeded):', error);
+                }
             }
-        }
 
-        return localId;
+            return localId;
+        } catch (error) {
+            console.error('Failed to save goal to IndexedDB:', error);
+            throw error;
+        }
     }
 
     // Override deleteActivity to sync with cloud
