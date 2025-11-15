@@ -66,6 +66,7 @@ class CloudDB extends FitnessDB {
             if (this.syncEnabled && this.authManager.isAuthenticated()) {
                 try {
                     // Convert camelCase to snake_case for Supabase
+                    // Note: 'current' field is not in Supabase schema, only stored locally
                     const goalData = {
                         title: goal.title,
                         type: goal.type,
@@ -73,7 +74,6 @@ class CloudDB extends FitnessDB {
                         target_date: goal.targetDate,
                         description: goal.description,
                         created_date: goal.createdDate,
-                        current: goal.current || 0,
                         status: goal.status || 'active',
                         user_id: this.authManager.getUserId(),
                         local_id: localId,
@@ -272,7 +272,6 @@ class CloudDB extends FitnessDB {
                     target_date: g.targetDate,
                     description: g.description,
                     created_date: g.createdDate,
-                    current: g.current || 0,
                     status: g.status || 'active',
                     user_id: userId,
                     local_id: g.id,
