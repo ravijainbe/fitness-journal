@@ -23,10 +23,9 @@ class CloudDB extends FitnessDB {
         this.supabase = supabase.createClient(this.supabaseUrl, this.supabaseKey);
         this.syncEnabled = true;
 
-        // Sync data if user is authenticated
-        if (this.authManager.isAuthenticated()) {
-            await this.syncFromCloud();
-        }
+        // DON'T auto-sync on init - this was causing data loss
+        // User can manually sync using the Sync button
+        console.log('CloudDB initialized. Use manual sync button to sync with cloud.');
     }
 
     // Override addActivity to sync with cloud

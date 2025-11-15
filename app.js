@@ -106,6 +106,9 @@ class FitnessJournal {
                 <button class="btn-primary" onclick="document.getElementById('import-file').click()">📤 Import Data</button>
                 <button class="btn-primary" onclick="journal.debugCloudData()">🔍 Debug Cloud</button>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
+                <div style="width: 100%; padding: 10px; background: #fff3cd; border-radius: 4px; font-size: 14px;">
+                    ℹ️ Data is saved locally. Goals and activities persist automatically.
+                </div>
             `;
             statsGrid.parentElement.appendChild(dataManagement);
 
