@@ -118,6 +118,11 @@ async function syncData() {
         return;
     }
 
+    if (!journal) {
+        alert('App not initialized yet');
+        return;
+    }
+
     try {
         const btn = event.target;
         btn.disabled = true;
@@ -134,32 +139,47 @@ async function syncData() {
         }, 2000);
     } catch (error) {
         alert('Sync failed: ' + error.message);
-        event.target.disabled = false;
-        event.target.textContent = '🔄 Sync';
+        const btn = event.target;
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🔄 Sync';
+        }
     }
 }
 
 async function initializeApp() {
     try {
+        console.log('Starting app initialization...');
+        
         // Initialize cloud database
+        console.log('Creating CloudDB...');
         cloudDb = new CloudDB(authManager);
+        
+        console.log('Initializing CloudDB...');
         await cloudDb.init();
+        console.log('CloudDB initialized');
 
         // Create journal instance if it doesn't exist
         if (!window.journal) {
+            console.log('Creating FitnessJournal instance...');
             window.journal = new FitnessJournal();
+            console.log('FitnessJournal created');
         }
         
         // Update the journal instance to use cloud database
+        console.log('Setting journal.db to cloudDb...');
         journal.db = cloudDb;
         
         // Now initialize the journal (this will render the UI)
+        console.log('Initializing journal...');
         await journal.init();
         
-        console.log('App initialized successfully');
+        console.log('App initialized successfully!');
+        console.log('Journal object:', journal);
     } catch (error) {
         console.error('Failed to initialize app:', error);
-        showAuthMessage('Failed to initialize app: ' + error.message, 'error');
+        console.error('Error stack:', error.stack);
+        alert('Failed to initialize app: ' + error.message + '\n\nCheck console for details.');
     }
 }
 
