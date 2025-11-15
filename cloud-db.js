@@ -65,15 +65,19 @@ class CloudDB extends FitnessDB {
 
             if (this.syncEnabled && this.authManager.isAuthenticated()) {
                 try {
-                    // Remove fields that might cause issues with Supabase
-                    const { id, createdAt, updatedAt, ...cleanGoal } = goal;
-                    
+                    // Convert camelCase to snake_case for Supabase
                     const goalData = {
-                        ...cleanGoal,
+                        title: goal.title,
+                        type: goal.type,
+                        target: goal.target,
+                        target_date: goal.targetDate,
+                        description: goal.description,
+                        created_date: goal.createdDate,
+                        current: goal.current || 0,
+                        status: goal.status || 'active',
                         user_id: this.authManager.getUserId(),
                         local_id: localId,
-                        synced_at: new Date().toISOString(),
-                        status: goal.status || 'active'
+                        synced_at: new Date().toISOString()
                     };
 
                     console.log('Sending to Supabase:', goalData);
@@ -196,7 +200,17 @@ class CloudDB extends FitnessDB {
 
                 if (goals) {
                     for (const goal of goals) {
-                        const { user_id, local_id, synced_at, id: cloudId, ...goalData } = goal;
+                        // Convert snake_case from Supabase to camelCase for local storage
+                        const goalData = {
+                            title: goal.title,
+                            type: goal.type,
+                            target: goal.target,
+                            targetDate: goal.target_date,
+                            description: goal.description,
+                            createdDate: goal.created_date,
+                            current: goal.current || 0,
+                            status: goal.status || 'active'
+                        };
                         await super.addGoal(goalData);
                     }
                 }
@@ -246,7 +260,14 @@ class CloudDB extends FitnessDB {
             // Upload goals
             if (goals.length > 0) {
                 const goalsData = goals.map(g => ({
-                    ...g,
+                    title: g.title,
+                    type: g.type,
+                    target: g.target,
+                    target_date: g.targetDate,
+                    description: g.description,
+                    created_date: g.createdDate,
+                    current: g.current || 0,
+                    status: g.status || 'active',
                     user_id: userId,
                     local_id: g.id,
                     synced_at: new Date().toISOString()
