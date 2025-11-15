@@ -133,11 +133,13 @@ class CloudDB extends FitnessDB {
     // Sync data from cloud to local
     async syncFromCloud() {
         if (!this.syncEnabled || !this.authManager.isAuthenticated()) {
+            console.log('syncFromCloud - Skipped (not enabled or not authenticated)');
             return;
         }
 
         try {
             const userId = this.authManager.getUserId();
+            console.log('syncFromCloud - Fetching data from cloud for user:', userId);
 
             // Fetch activities from cloud
             const { data: activities, error: activitiesError } = await this.supabase
@@ -145,7 +147,10 @@ class CloudDB extends FitnessDB {
                 .select('*')
                 .eq('user_id', userId);
 
-            if (activitiesError) throw activitiesError;
+            if (activitiesError) {
+                console.warn('syncFromCloud - Failed to fetch activities, keeping local data:', activitiesError);
+                throw activitiesError;
+            }
 
             // Fetch goals from cloud
             const { data: goals, error: goalsError } = await this.supabase
@@ -153,9 +158,16 @@ class CloudDB extends FitnessDB {
                 .select('*')
                 .eq('user_id', userId);
 
-            if (goalsError) throw goalsError;
+            if (goalsError) {
+                console.warn('syncFromCloud - Failed to fetch goals, keeping local data:', goalsError);
+                throw goalsError;
+            }
 
-            // Clear local data
+            console.log(`syncFromCloud - Fetched ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
+
+            // Only clear and sync if we successfully fetched data
+            // This prevents clearing local data when cloud sync fails
+            console.log('syncFromCloud - Clearing local data and importing from cloud');
             await this.clearAllData();
 
             // Import cloud data to local
@@ -173,9 +185,10 @@ class CloudDB extends FitnessDB {
                 }
             }
 
-            console.log(`Synced ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
+            console.log(`syncFromCloud - Successfully synced ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
         } catch (error) {
-            console.error('Failed to sync from cloud:', error);
+            console.error('syncFromCloud - Error, keeping local data intact:', error);
+            // Don't clear local data on error - just keep what we have
         }
     }
 
