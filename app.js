@@ -29,6 +29,7 @@ class FitnessJournal {
         try {
             this.activities = await this.db.getAllActivities();
             this.goals = await this.db.getAllGoals();
+            console.log('Data loaded - Activities:', this.activities.length, 'Goals:', this.goals.length);
         } catch (error) {
             console.error('Failed to load data:', error);
         }
