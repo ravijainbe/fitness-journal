@@ -1,0 +1,9 @@
+# Netlify redirects file
+# Static files should be served as-is
+/*.js  /:splat.js  200
+/*.css /:splat.css 200
+/*.html /:splat.html 200
+/*.json /:splat.json 200
+/*.png /:splat.png 200
+/*.jpg /:splat.jpg 200
+/*.svg /:splat.svg 200
