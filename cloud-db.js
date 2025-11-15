@@ -165,27 +165,38 @@ class CloudDB extends FitnessDB {
 
             console.log(`syncFromCloud - Fetched ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
 
-            // Only clear and sync if we successfully fetched data
-            // This prevents clearing local data when cloud sync fails
-            console.log('syncFromCloud - Clearing local data and importing from cloud');
-            await this.clearAllData();
+            // Get local data to compare
+            const localActivities = await super.getAllActivities();
+            const localGoals = await super.getAllGoals();
+            
+            console.log(`syncFromCloud - Local data: ${localActivities.length} activities, ${localGoals.length} goals`);
 
-            // Import cloud data to local
-            if (activities) {
-                for (const activity of activities) {
-                    const { user_id, local_id, synced_at, id: cloudId, ...activityData } = activity;
-                    await super.addActivity(activityData);
+            // Only clear and sync if cloud has data OR if local is empty
+            // This prevents clearing local data when cloud is empty
+            if ((activities && activities.length > 0) || (goals && goals.length > 0) || (localActivities.length === 0 && localGoals.length === 0)) {
+                console.log('syncFromCloud - Clearing local data and importing from cloud');
+                await this.clearAllData();
+
+                // Import cloud data to local
+                if (activities) {
+                    for (const activity of activities) {
+                        const { user_id, local_id, synced_at, id: cloudId, ...activityData } = activity;
+                        await super.addActivity(activityData);
+                    }
                 }
-            }
 
-            if (goals) {
-                for (const goal of goals) {
-                    const { user_id, local_id, synced_at, id: cloudId, ...goalData } = goal;
-                    await super.addGoal(goalData);
+                if (goals) {
+                    for (const goal of goals) {
+                        const { user_id, local_id, synced_at, id: cloudId, ...goalData } = goal;
+                        await super.addGoal(goalData);
+                    }
                 }
-            }
 
-            console.log(`syncFromCloud - Successfully synced ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
+                console.log(`syncFromCloud - Successfully synced ${activities ? activities.length : 0} activities and ${goals ? goals.length : 0} goals from cloud`);
+            } else {
+                console.log('syncFromCloud - Cloud is empty but local has data. Syncing local to cloud instead.');
+                await this.syncToCloud();
+            }
         } catch (error) {
             console.error('syncFromCloud - Error, keeping local data intact:', error);
             // Don't clear local data on error - just keep what we have
@@ -257,6 +268,51 @@ class CloudDB extends FitnessDB {
 
         await this.syncFromCloud();
         return { success: true, message: 'Data synced successfully' };
+    }
+
+    // Diagnostic function to check cloud data
+    async checkCloudData() {
+        if (!this.syncEnabled || !this.authManager.isAuthenticated()) {
+            console.log('Cannot check cloud data - not authenticated');
+            return null;
+        }
+
+        try {
+            const userId = this.authManager.getUserId();
+            
+            const { data: activities, error: activitiesError } = await this.supabase
+                .from('activities')
+                .select('*')
+                .eq('user_id', userId);
+
+            const { data: goals, error: goalsError } = await this.supabase
+                .from('goals')
+                .select('*')
+                .eq('user_id', userId);
+
+            const localActivities = await super.getAllActivities();
+            const localGoals = await super.getAllGoals();
+
+            const report = {
+                cloud: {
+                    activities: activities ? activities.length : 0,
+                    goals: goals ? goals.length : 0,
+                    activitiesError: activitiesError ? activitiesError.message : null,
+                    goalsError: goalsError ? goalsError.message : null
+                },
+                local: {
+                    activities: localActivities.length,
+                    goals: localGoals.length
+                },
+                userId: userId
+            };
+
+            console.log('Cloud Data Report:', report);
+            return report;
+        } catch (error) {
+            console.error('Failed to check cloud data:', error);
+            return { error: error.message };
+        }
     }
 }
 

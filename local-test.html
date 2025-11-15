@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local IndexedDB Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 IndexedDB Test for Fitness Journal</h1>
+    <div class="test-result info">
+        <strong>Protocol:</strong> <span id="protocol"></span><br>
+        <strong>Origin:</strong> <span id="origin"></span>
+    </div>
+    
+    <button onclick="testIndexedDB()">Test IndexedDB</button>
+    <button onclick="testGoalSave()">Test Goal Save</button>
+    <button onclick="testGoalLoad()">Test Goal Load</button>
+    <button onclick="clearDB()">Clear Database</button>
+    
+    <div id="results"></div>
+    <div id="log"></div>
+
+    <script src="db.js"></script>
+    <script>
+        // Display current protocol and origin
+        document.getElementById('protocol').textContent = window.location.protocol;
+        document.getElementById('origin').textContent = window.location.origin;
+
+        let testDB = null;
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logEl.innerHTML += `<div>[${time}] ${type.toUpperCase()}: ${message}</div>`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function showResult(message, type) {
+            const resultsEl = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            resultsEl.appendChild(div);
+        }
+
+        async function testIndexedDB() {
+            log('Testing IndexedDB availability...');
+            if (!window.indexedDB) {
+                showResult('❌ IndexedDB not supported', 'error');
+                log('IndexedDB not supported', 'error');
+                return;
+            }
+
+            try {
+                testDB = new FitnessDB();
+                await testDB.init();
+                showResult('✅ IndexedDB is working!', 'success');
+                log('IndexedDB test passed', 'success');
+            } catch (error) {
+                showResult('❌ IndexedDB error: ' + error.message, 'error');
+                log('IndexedDB error: ' + error.message, 'error');
+            }
+        }
+
+        async function testGoalSave() {
+            log('Testing goal save...');
+            try {
+                if (!testDB) {
+                    testDB = new FitnessDB();
+                    await testDB.init();
+                }
+
+                const goal = {
+                    title: 'Test Goal ' + Date.now(),
+                    type: 'duration',
+                    target: 100,
+                    targetDate: '2025-12-31',
+                    description: 'Test goal for local storage',
+                    createdDate: new Date().toISOString().split('T')[0],
+                    current: 0
+                };
+
+                const id = await testDB.addGoal(goal);
+                showResult(`✅ Goal saved with ID: ${id}`, 'success');
+                log(`Goal saved successfully with ID: ${id}`, 'success');
+            } catch (error) {
+                showResult('❌ Goal save error: ' + error.message, 'error');
+                log('Goal save error: ' + error.message, 'error');
+            }
+        }
+
+        async function testGoalLoad() {
+            log('Testing goal load...');
+            try {
+                if (!testDB) {
+                    testDB = new FitnessDB();
+                    await testDB.init();
+                }
+
+                const goals = await testDB.getAllGoals();
+                showResult(`✅ Loaded ${goals.length} goals`, 'success');
+                log(`Loaded ${goals.length} goals:`, 'success');
+                goals.forEach((goal, index) => {
+                    log(`  ${index + 1}. ${goal.title} (ID: ${goal.id})`);
+                });
+            } catch (error) {
+                showResult('❌ Goal load error: ' + error.message, 'error');
+                log('Goal load error: ' + error.message, 'error');
+            }
+        }
+
+        async function clearDB() {
+            log('Clearing database...');
+            try {
+                if (testDB) {
+                    await testDB.clearAllData();
+                    showResult('✅ Database cleared', 'success');
+                    log('Database cleared successfully', 'success');
+                } else {
+                    showResult('❌ Database not initialized', 'error');
+                }
+            } catch (error) {
+                showResult('❌ Clear error: ' + error.message, 'error');
+                log('Clear error: ' + error.message, 'error');
+            }
+        }
+
+        // Auto-run basic test
+        window.onload = function() {
+            log('Page loaded, running basic IndexedDB test...');
+            testIndexedDB();
+        };
+    </script>
+</body>
+</html>
